@@ -1,6 +1,5 @@
 import { Layout } from "antd";
 const { Content } = Layout;
-
 import SidebarContent from "./SidebarContent";
 import { theme } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,6 +29,10 @@ const AppContent = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [durationArray, setDurationArray] = useState<number[]>([]);
   const [updatedCurrentTime, setUpdatedCurrentTime] = useState(0);
+
+  // useEffect(() => {
+  //   console.log(content);
+  // }, [content]);
 
   const getPreviousAudioTime = useCallback(() => {
     let totalTimeOfPreviousAudios = durationArray
