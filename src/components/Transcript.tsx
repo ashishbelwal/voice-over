@@ -6,10 +6,12 @@ const Transcript = ({
   content,
   setContentType,
   setContent,
+  handleAudioGeneration,
 }: {
   content: TContent[];
   setContentType: Dispatch<SetStateAction<TContentType>>;
   setContent: Dispatch<SetStateAction<TContent[]>>;
+  handleAudioGeneration: (voice: string, id: string) => void;
 }) => {
   return (
     <div className="transcript-container">
@@ -20,6 +22,7 @@ const Transcript = ({
             transcript={item}
             setContentType={setContentType}
             setContent={setContent}
+            handleAudioGeneration={handleAudioGeneration}
           />
         </div>
       ))}
@@ -29,6 +32,7 @@ const Transcript = ({
         content={content}
         setContentType={setContentType}
         setContent={setContent}
+        handleAudioGeneration={handleAudioGeneration}
       />
     </div>
   );

@@ -16,6 +16,7 @@ const AudioContent = ({
   durationArray,
   audioPlayerIndex,
   setCurrentTime,
+  handleAudioGeneration,
 }: {
   content: TContent[];
   audioPlayer: React.RefObject<HTMLAudioElement>;
@@ -27,6 +28,7 @@ const AudioContent = ({
   durationArray: number[];
   audioPlayerIndex: number;
   setCurrentTime: (time: number) => void;
+  handleAudioGeneration: (voice: string, id: string) => void;
 }) => {
   return (
     <div className="audio-content">

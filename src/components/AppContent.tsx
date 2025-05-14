@@ -8,6 +8,7 @@ import AudioList from "./AudioList";
 import { TContentType, TContent } from "../types/types";
 import Transcript from "./Transcript";
 import AudioContent from "./AudioContent";
+import { generateAudioFromText } from "../services/api";
 
 const AppContent = () => {
   const {
@@ -15,11 +16,8 @@ const AppContent = () => {
   } = theme.useToken();
   const [contentType, setContentType] = useState<TContentType>("content");
   const [content, setContent] = useState<TContent[]>([]);
-  const [audioPlayerArray, setAudioPlayerArray] = useState<string[]>([
-    "../../public/sample-1.mp3",
-    "../../public/sample-2.mp3",
-    "../../public/sample-3.mp3",
-  ]);
+  const [audioPlayerArray, setAudioPlayerArray] = useState<string[]>([]);
+
   const audioPlayer = useRef<HTMLAudioElement>(
     null
   ) as React.RefObject<HTMLAudioElement>;
@@ -30,9 +28,12 @@ const AppContent = () => {
   const [durationArray, setDurationArray] = useState<number[]>([]);
   const [updatedCurrentTime, setUpdatedCurrentTime] = useState(0);
 
-  // useEffect(() => {
-  //   console.log(content);
-  // }, [content]);
+  useEffect(() => {
+    const validAudioUrls = content
+      .map((item) => item.audio)
+      .filter((url): url is string => !!url); // Filter out undefined/null
+    setAudioPlayerArray(validAudioUrls);
+  }, [content]);
 
   const getPreviousAudioTime = useCallback(() => {
     let totalTimeOfPreviousAudios = durationArray
@@ -46,29 +47,44 @@ const AppContent = () => {
   }, [currentTime, getPreviousAudioTime]);
 
   const getTotalTime = async () => {
-    let totalTime = 0;
+    console.log("inside getTotalTime");
+    if (!audioPlayerArray || audioPlayerArray.length === 0) return;
 
     const getDuration = (src: string) =>
       new Promise<number>((resolve) => {
-        const audio = new Audio(src);
+        const audio = new Audio();
+
+        audio.src = src;
+
         audio.addEventListener("loadedmetadata", () => {
           resolve(audio.duration);
         });
+
+        // In case metadata fails to load
         audio.addEventListener("error", () => {
           resolve(0);
         });
+
+        // Force load to trigger metadata event
+        audio.load();
       });
 
-    const durations = await Promise.all(audioPlayerArray.map(getDuration));
-    setDurationArray(durations);
-    // console.log("Duration Array", durations);
-    totalTime = durations.reduce((acc, curr) => acc + curr, 0);
-    // console.log("Duration Array", durations);
-    setTotalTime(totalTime);
+    try {
+      const durations = await Promise.all(audioPlayerArray.map(getDuration));
+      console.log("durations", durations);
+      setDurationArray(durations);
+
+      const totalTime = durations.reduce((acc, curr) => acc + curr, 0);
+      setTotalTime(totalTime);
+    } catch (err) {
+      console.error("Error calculating durations", err);
+    }
   };
 
   useEffect(() => {
-    getTotalTime();
+    if (audioPlayerArray.length > 0) {
+      getTotalTime();
+    }
   }, [audioPlayerArray]);
 
   const handleEnded = () => {
@@ -122,17 +138,37 @@ const AppContent = () => {
       console.log("Playlist ended");
     }
   };
+  const handleAudioGeneration = async (voice: string, id: string) => {
+    const text = content.find((item) => item.id === id)?.text;
+    if (!text) return;
+    const audio = await generateAudioFromText(voice, text);
+    const bufferData = audio.data.audioBlob.data; // the array from { type: 'Buffer', data: [...] }
+    const uint8Array = new Uint8Array(bufferData);
+    const audioBlobObj = new Blob([uint8Array], { type: "audio/mpeg" });
+    const audioURL = URL.createObjectURL(audioBlobObj);
+    setContent((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, audio: audioURL, audioBlob: audioBlobObj }
+          : item
+      )
+    );
+  };
   return (
     <div className="full-height">
-      <audio
-        ref={audioPlayer}
-        onEnded={handleEnded}
-        controls
-        style={{ visibility: "hidden", height: 0, width: 0 }}
-      >
-        <source src={audioPlayerArray[audioPlayerIndex]} type="audio/mpeg" />
-        Your browser does not support the audio element.
-      </audio>
+      {audioPlayerArray.length > 0 && (
+        <audio
+          ref={audioPlayer}
+          key={audioPlayerArray[audioPlayerIndex]}
+          onEnded={handleEnded}
+          controls
+          style={{ visibility: "hidden", height: 0, width: 0 }}
+        >
+          <source src={audioPlayerArray[audioPlayerIndex]} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      )}
+
       <Layout style={{ background: colorBgContainer, marginTop: -21 }}>
         <SidebarContent
           contentType={contentType}
@@ -153,6 +189,7 @@ const AppContent = () => {
                   content={content}
                   setContentType={setContentType}
                   setContent={setContent}
+                  handleAudioGeneration={handleAudioGeneration}
                 />
               </div>
             </div>
@@ -168,6 +205,7 @@ const AppContent = () => {
                 durationArray={durationArray}
                 audioPlayerIndex={audioPlayerIndex}
                 setCurrentTime={setCurrentTime}
+                handleAudioGeneration={handleAudioGeneration}
               />
             </div>
           </div>

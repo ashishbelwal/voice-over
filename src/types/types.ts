@@ -6,4 +6,5 @@ export type TContent = {
   waveform: string | null;
   audio: string;
   voice: string;
+  audioBlob: Blob | null;
 };

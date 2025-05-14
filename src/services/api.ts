@@ -1,40 +1,6 @@
 import { TContent } from "../types/types";
 import { v4 as uuidv4 } from "uuid";
 
-// export const generateContent = async (prompt: string) => {
-//   try {
-//     const response = await axios.post(
-//       "https://openrouter.ai/api/v1/chat/completions",
-//       {
-//         model: "meta-llama/llama-3.3-70b-instruct:free",
-//         messages: [
-//           {
-//             role: "user",
-//             content: `Format this text into a clean audio script.
-//                         Keep the original writing style and point of view (first-person or third-person) exactly the same.
-//                         Do not invent new content, characters, or narrators.
-//                         Just make the text flow naturally for an audio recording, adding light formatting for better speaking if needed.
-//                         Do not comments or any other instructions.
-//               ${prompt}`,
-//           },
-//         ],
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${import.meta.env.VITE_OR_TEXT_TO_TEXT_KEY}`,
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     const formattedContent = formatContent(
-//       response.data.choices[0].message.content
-//     );
-//     return formattedContent;
-//   } catch (error: any) {
-//     throw error?.message || "Something went wrong";
-//   }
-// };
-
 export const generateContent = async (
   prompt: string,
   onStream: (contentArray: TContent[]) => void
@@ -110,6 +76,7 @@ export const generateContent = async (
                   waveform: null,
                   audio: "",
                   voice: "",
+                  audioBlob: null,
                 });
               }
             });
@@ -130,9 +97,37 @@ export const generateContent = async (
       waveform: null,
       audio: "",
       voice: "",
+      audioBlob: null,
     });
     onStream([...contentArray]);
   }
 
   return contentArray;
+};
+
+export const generateAudioFromText = async (voice: string, text: string) => {
+  const body = {
+    text: text,
+    languageCodes: "en-US",
+    name: "en-US-Wavenet-D",
+    ssmlGender: voice === "Alex" ? "MALE" : "FEMALE",
+    audioEncoding: "MP3",
+  };
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BASE_API_URL}/tts/synthesize`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    return response.json();
+  } catch (error) {
+    console.error("Error generating audio from text", error);
+    return error;
+  }
 };
