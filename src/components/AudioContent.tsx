@@ -1,9 +1,7 @@
 import { TContent } from "../types/types";
 import AudioControls from "./AudioControls";
 import AudioVoice from "./AudioVoice";
-import TimeMarker from "./TimeMarker";
 import TimeRuler from "./TimeRuler";
-import WaveformPlayer from "./WaveformPlayer";
 
 const AudioContent = ({
   content,
@@ -43,18 +41,21 @@ const AudioContent = ({
       <div className="flex flex-row">
         <AudioVoice />
         <div className="flex flex-column waveform-container">
-          <div className="waveform-wrapper">
+          <div
+            className="waveform-wrapper overflow-hidden"
+            style={{
+              width: durationArray.reduce((acc, curr) => acc + curr, 0) * 100,
+              minWidth: window.innerWidth - 100,
+            }}
+          >
             <TimeRuler
+              content={content}
               setCurrentTime={setCurrentTime}
               durationArray={durationArray}
-            />
-            <TimeMarker
-              durationArray={durationArray}
+              currentTime={currentTime}
               audioPlayerIndex={audioPlayerIndex}
               isPlaying={isPlaying}
-              currentTime={currentTime}
             />
-            <WaveformPlayer content={content} />
           </div>
         </div>
       </div>

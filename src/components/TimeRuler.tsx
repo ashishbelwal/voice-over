@@ -1,57 +1,93 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Ruler from "@scena/react-ruler";
+import Gesto from "gesto";
+import TimeMarker from "./TimeMarker";
+import WaveformPlayer from "./WaveformPlayer";
+import { TContent } from "../types/types";
+
+const SCROLL_SPEED = 0.3;
+const ZOOM = 20;
 
 const TimeRuler = ({
   setCurrentTime,
   durationArray,
+  currentTime,
+  audioPlayerIndex,
+  isPlaying,
+  content,
 }: {
   setCurrentTime: (time: number) => void;
   durationArray: number[];
+  currentTime: number;
+  audioPlayerIndex: number;
+  isPlaying: boolean;
+  content: TContent[];
 }) => {
-  const rulerRef = useRef<any>(null);
-  const rulerRefDiv = useRef<HTMLDivElement>(null);
+  const rulerWrapperRef = useRef<HTMLDivElement>(null);
+  const [scrollX, setScrollX] = useState(0);
 
   useEffect(() => {
-    const handleResize = () => rulerRef.current?.resize();
-    rulerRef.current?.resize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const gesto = new Gesto(rulerWrapperRef.current || document.body, {
+      container: rulerWrapperRef.current || undefined,
+    });
+
+    gesto.on("drag", (e) => {
+      setScrollX((prev) => Math.max(prev - e.deltaX * SCROLL_SPEED, 0));
+    });
+
+    return () => {
+      gesto.off();
+    };
   }, []);
 
   const handleTimeUpdate = (e: React.MouseEvent) => {
-    if (!rulerRefDiv.current) return;
+    if (!rulerWrapperRef.current) return;
 
-    const rect = rulerRefDiv.current.getBoundingClientRect();
-    const zoom = rulerRef.current.props.zoom;
-
+    const rect = rulerWrapperRef.current.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
-    const seconds = relativeX / zoom;
+    const seconds = relativeX / ZOOM;
     const totalTime = durationArray.reduce((acc, curr) => acc + curr, 0);
-    if (seconds > totalTime) {
-      setCurrentTime(totalTime);
-    } else {
-      setCurrentTime(seconds);
-    }
+    console.log(Math.min(seconds, totalTime));
+    setCurrentTime(Math.min(seconds, totalTime));
   };
 
   return (
-    <div onClick={handleTimeUpdate} ref={rulerRefDiv}>
-      <Ruler
-        ref={rulerRef}
-        type="horizontal"
-        unit={1} // 1 unit = 1 second
-        zoom={60}
-        backgroundColor="#fff"
-        lineColor="#999"
-        textColor="#333"
-        height={30}
+    <div
+      ref={rulerWrapperRef}
+      onClick={handleTimeUpdate}
+      style={{
+        overflow: "hidden",
+        cursor: "grab",
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <div
         style={{
-          borderBottom: "1px solid #ddd",
-          width: "100%",
-          marginTop: 10,
+          display: "inline-block",
+          transform: `translateX(-${scrollX}px)`,
+          transition: "transform 0.05s linear",
         }}
-        textFormat={(scale) => `${scale}s`}
-      />
+      >
+        <TimeMarker currentTime={currentTime} />
+        <Ruler
+          type="horizontal"
+          unit={5}
+          zoom={ZOOM}
+          backgroundColor="#fff"
+          lineColor="#999"
+          textColor="#333"
+          height={30}
+          style={{
+            borderBottom: "1px solid #ddd",
+            minWidth: 10000,
+            width: 10000,
+            marginTop: 10,
+          }}
+          textFormat={(scale) => `${scale}s`}
+        />
+        <WaveformPlayer content={content} durationArray={durationArray} />
+      </div>
     </div>
   );
 };

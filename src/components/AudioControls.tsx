@@ -46,6 +46,7 @@ const AudioControls = ({
             size={18}
             className="audio-control-icon"
             onClick={() => {
+              console.log("audioPlayer.current", audioPlayer.current);
               if (audioPlayer.current) {
                 audioPlayer.current.play();
               }

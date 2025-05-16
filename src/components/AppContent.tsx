@@ -31,7 +31,7 @@ const AppContent = () => {
   useEffect(() => {
     const validAudioUrls = content
       .map((item) => item.audio)
-      .filter((url): url is string => !!url); // Filter out undefined/null
+      .filter((url): url is string => !!url);
     setAudioPlayerArray(validAudioUrls);
   }, [content]);
 
@@ -43,11 +43,12 @@ const AppContent = () => {
   }, [audioPlayerIndex]);
 
   useEffect(() => {
-    setUpdatedCurrentTime(currentTime + getPreviousAudioTime());
+    const timeToUpdate = currentTime;
+    // console.log("timeToUpdate", timeToUpdate);
+    setUpdatedCurrentTime(timeToUpdate);
   }, [currentTime, getPreviousAudioTime]);
 
   const getTotalTime = async () => {
-    console.log("inside getTotalTime");
     if (!audioPlayerArray || audioPlayerArray.length === 0) return;
 
     const getDuration = (src: string) =>
@@ -71,7 +72,7 @@ const AppContent = () => {
 
     try {
       const durations = await Promise.all(audioPlayerArray.map(getDuration));
-      console.log("durations", durations);
+      // console.log("durations", durations);
       setDurationArray(durations);
 
       const totalTime = durations.reduce((acc, curr) => acc + curr, 0);
@@ -82,6 +83,7 @@ const AppContent = () => {
   };
 
   useEffect(() => {
+    // console.log("audioPlayerArray", audioPlayerArray);
     if (audioPlayerArray.length > 0) {
       getTotalTime();
     }
@@ -142,7 +144,7 @@ const AppContent = () => {
     const text = content.find((item) => item.id === id)?.text;
     if (!text) return;
     const audio = await generateAudioFromText(voice, text);
-    const bufferData = audio.data.audioBlob.data; // the array from { type: 'Buffer', data: [...] }
+    const bufferData = audio.data.audioBlob.data;
     const uint8Array = new Uint8Array(bufferData);
     const audioBlobObj = new Blob([uint8Array], { type: "audio/mpeg" });
     const audioURL = URL.createObjectURL(audioBlobObj);
@@ -156,18 +158,19 @@ const AppContent = () => {
   };
   return (
     <div className="full-height">
-      {audioPlayerArray.length > 0 && (
-        <audio
-          ref={audioPlayer}
-          key={audioPlayerArray[audioPlayerIndex]}
-          onEnded={handleEnded}
-          controls
-          style={{ visibility: "hidden", height: 0, width: 0 }}
-        >
-          <source src={audioPlayerArray[audioPlayerIndex]} type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
-      )}
+      <audio
+        ref={audioPlayer}
+        key={audioPlayerArray[audioPlayerIndex]}
+        onEnded={handleEnded}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onTimeUpdate={handleTimeUpdate}
+        controls
+        style={{ visibility: "hidden", height: 0, width: 0 }}
+      >
+        <source src={audioPlayerArray[audioPlayerIndex]} type="audio/mpeg" />
+        Your browser does not support the audio element.
+      </audio>
 
       <Layout style={{ background: colorBgContainer, marginTop: -21 }}>
         <SidebarContent

@@ -1,21 +1,11 @@
-import { useEffect, useState } from "react";
-
-const TimeMarker = ({
-  durationArray,
-  audioPlayerIndex,
-  isPlaying,
-  currentTime,
-}: {
-  durationArray: number[];
-  audioPlayerIndex: number;
-  isPlaying: boolean;
-  currentTime: number;
-}) => {
+const TimeMarker = ({ currentTime }: { currentTime: number }) => {
+  const ZOOM = 20;
+  console.log(currentTime, currentTime * ZOOM);
   return (
     <div
       className="time-marker"
       style={{
-        left: `${currentTime * 60}px`,
+        left: `${currentTime * ZOOM}px`,
       }}
     >
       <div className="marker-icon"></div>
