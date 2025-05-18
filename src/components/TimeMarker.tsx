@@ -1,6 +1,7 @@
 const TimeMarker = ({ currentTime }: { currentTime: number }) => {
   const ZOOM = 20;
-  console.log(currentTime, currentTime * ZOOM);
+  // console.log("currentTime", currentTime);
+  // console.log(currentTime, currentTime * ZOOM);
   return (
     <div
       className="time-marker"

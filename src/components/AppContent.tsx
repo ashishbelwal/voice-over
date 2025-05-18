@@ -2,7 +2,7 @@ import { Layout } from "antd";
 const { Content } = Layout;
 import SidebarContent from "./SidebarContent";
 import { theme } from "antd";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PromtContent from "./PromtContent";
 import AudioList from "./AudioList";
 import { TContentType, TContent } from "../types/types";
@@ -26,7 +26,7 @@ const AppContent = () => {
   const [totalTime, setTotalTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [durationArray, setDurationArray] = useState<number[]>([]);
-  const [updatedCurrentTime, setUpdatedCurrentTime] = useState(0);
+  const [markerTime, setMarkerTime] = useState(0);
 
   useEffect(() => {
     const validAudioUrls = content
@@ -35,44 +35,23 @@ const AppContent = () => {
     setAudioPlayerArray(validAudioUrls);
   }, [content]);
 
-  const getPreviousAudioTime = useCallback(() => {
-    let totalTimeOfPreviousAudios = durationArray
-      .slice(0, audioPlayerIndex)
-      .reduce((acc, curr) => acc + curr, 0);
-    return totalTimeOfPreviousAudios || 0;
-  }, [audioPlayerIndex]);
-
-  useEffect(() => {
-    const timeToUpdate = currentTime;
-    // console.log("timeToUpdate", timeToUpdate);
-    setUpdatedCurrentTime(timeToUpdate);
-  }, [currentTime, getPreviousAudioTime]);
-
   const getTotalTime = async () => {
     if (!audioPlayerArray || audioPlayerArray.length === 0) return;
-
     const getDuration = (src: string) =>
       new Promise<number>((resolve) => {
         const audio = new Audio();
-
         audio.src = src;
-
         audio.addEventListener("loadedmetadata", () => {
           resolve(audio.duration);
         });
-
-        // In case metadata fails to load
         audio.addEventListener("error", () => {
           resolve(0);
         });
-
-        // Force load to trigger metadata event
         audio.load();
       });
 
     try {
       const durations = await Promise.all(audioPlayerArray.map(getDuration));
-      // console.log("durations", durations);
       setDurationArray(durations);
 
       const totalTime = durations.reduce((acc, curr) => acc + curr, 0);
@@ -83,30 +62,10 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    // console.log("audioPlayerArray", audioPlayerArray);
     if (audioPlayerArray.length > 0) {
       getTotalTime();
     }
   }, [audioPlayerArray]);
-
-  const handleEnded = () => {
-    if (audioPlayerIndex < audioPlayerArray.length - 1) {
-      setAudioPlayerIndex((prev) => prev + 1);
-    } else {
-      console.log("Playlist ended");
-    }
-  };
-  const handleTimeUpdate = () => {
-    if (!audioPlayer.current) return;
-    setCurrentTime(audioPlayer.current.currentTime || 0);
-  };
-
-  useEffect(() => {
-    if (audioPlayerIndex > 0) {
-      audioPlayer.current?.load();
-      audioPlayer.current?.play();
-    }
-  }, [audioPlayerIndex]);
 
   useEffect(() => {
     const audio = audioPlayer.current;
@@ -117,29 +76,13 @@ const AppContent = () => {
 
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
 
     return () => {
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
     };
   }, [audioPlayer]);
 
-  const handleNext = () => {
-    if (audioPlayerIndex < audioPlayerArray.length - 1) {
-      setAudioPlayerIndex((prev) => prev + 1);
-    } else {
-      console.log("Playlist ended");
-    }
-  };
-  const handlePrevious = () => {
-    if (audioPlayerIndex > 0) {
-      setAudioPlayerIndex((prev) => prev - 1);
-    } else {
-      console.log("Playlist ended");
-    }
-  };
   const handleAudioGeneration = async (voice: string, id: string) => {
     const text = content.find((item) => item.id === id)?.text;
     if (!text) return;
@@ -156,15 +99,61 @@ const AppContent = () => {
       )
     );
   };
+
+  const handlePlayAtIndex = (index: number) => {
+    const player = audioPlayer.current;
+    if (!player) return;
+
+    const handleCanPlay = () => {
+      player.play().catch((err) => {
+        console.warn("Playback error:", err);
+      });
+    };
+
+    player.pause();
+    player.removeEventListener("canplaythrough", handleCanPlay);
+
+    player.src = audioPlayerArray[index];
+    player.currentTime = 0;
+    player.load();
+
+    player.addEventListener("canplaythrough", handleCanPlay);
+    setAudioPlayerIndex(index);
+    setMarkerTime(durationArray[index]);
+  };
+  const handleNext = () => {
+    if (audioPlayerIndex < audioPlayerArray.length - 1) {
+      handlePlayAtIndex(audioPlayerIndex + 1);
+    } else {
+      console.log("Playlist ended");
+    }
+  };
+
+  const handlePrevious = () => {
+    if (audioPlayerIndex > 0) {
+      handlePlayAtIndex(audioPlayerIndex - 1);
+    } else {
+      console.log("At beginning of playlist");
+    }
+  };
+  const handleEnded = () => {
+    console.log("audioPlayerIndex", audioPlayerIndex);
+    if (audioPlayerIndex < audioPlayerArray.length - 1) {
+      setAudioPlayerIndex((prev) => prev + 1);
+      setCurrentTime(0);
+    } else {
+      console.log("Playlist ended");
+    }
+  };
+
   return (
     <div className="full-height">
       <audio
         ref={audioPlayer}
-        key={audioPlayerArray[audioPlayerIndex]}
+        // key={audioPlayerArray[audioPlayerIndex]}
         onEnded={handleEnded}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onTimeUpdate={handleTimeUpdate}
         controls
         style={{ visibility: "hidden", height: 0, width: 0 }}
       >
@@ -204,7 +193,7 @@ const AppContent = () => {
                 handleNext={handleNext}
                 handlePrevious={handlePrevious}
                 totalTime={totalTime}
-                currentTime={updatedCurrentTime}
+                currentTime={currentTime}
                 durationArray={durationArray}
                 audioPlayerIndex={audioPlayerIndex}
                 setCurrentTime={setCurrentTime}

@@ -47,7 +47,7 @@ const TimeRuler = ({
     const relativeX = e.clientX - rect.left;
     const seconds = relativeX / ZOOM;
     const totalTime = durationArray.reduce((acc, curr) => acc + curr, 0);
-    console.log(Math.min(seconds, totalTime));
+    // console.log(Math.min(seconds, totalTime));
     setCurrentTime(Math.min(seconds, totalTime));
   };
 
