@@ -14,7 +14,7 @@ import {
   ArrowUpFromLine,
   ArrowDownFromLine,
 } from "lucide-react";
-import { useState, Dispatch, SetStateAction } from "react";
+import { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { TContent, TContentType } from "../types/types";
 const alexIcon = (
   <Avatar
@@ -48,6 +48,23 @@ const TranscriptContent = ({
   const [voice, setVoice] = useState(
     transcript.voice ? transcript.voice : "Alex"
   );
+
+  useEffect(() => {
+    setContent(
+      content.map((item) =>
+        item.id === transcript.id ? { ...item, voice: voice } : item
+      )
+    );
+  }, [voice]);
+
+  useEffect(() => {
+    setContent(
+      content.map((item) =>
+        item.id === transcript.id ? { ...item, text: transcriptValue } : item
+      )
+    );
+  }, [transcriptValue]);
+
   const items: MenuProps["items"] = [
     {
       label: "Alex",
@@ -72,7 +89,7 @@ const TranscriptContent = ({
       text: "",
       waveform: "",
       audio: "",
-      voice: "",
+      voice: "Alex",
       audioBlob: null,
     };
 

@@ -1,36 +1,44 @@
 import React, { useEffect, useRef } from "react";
 import WaveSurfer from "wavesurfer.js";
-import audio from "../../public/audio.mp3";
 
 type Props = {
-  peaks: number[];
+  blob: Blob;
 };
 
-const WaveformFromJsonOnly = ({ peaks }: Props) => {
+const WaveformViewer = ({ blob }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveSurferRef = useRef<WaveSurfer | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!blob || !containerRef.current) return;
 
-    // Init WaveSurfer
-    waveSurferRef.current = WaveSurfer.create({
+    const objectUrl = URL.createObjectURL(blob);
+
+    // Cleanup previous instance
+    if (waveSurferRef.current) {
+      waveSurferRef.current.destroy();
+      waveSurferRef.current = null;
+    }
+
+    const wavesurfer = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: "#0000001f",
-      progressColor: "#0000001f", // No actual progress
-      interact: false,
-      cursorWidth: 0,
-      height: 40,
-      url: audio,
+      waveColor: "#b4cfb4",
+      height: 36,
+      barWidth: 2,
+      cursorColor: "transparent",
     });
 
-    // Load fake audio with peak data only
-    waveSurferRef.current.load("", [peaks]);
+    waveSurferRef.current = wavesurfer;
 
-    return () => waveSurferRef.current?.destroy();
-  }, [peaks]);
+    wavesurfer.load(objectUrl);
+
+    return () => {
+      wavesurfer.destroy();
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [blob]);
 
   return <div ref={containerRef} />;
 };
 
-export default WaveformFromJsonOnly;
+export default WaveformViewer;

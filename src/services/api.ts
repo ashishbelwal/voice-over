@@ -75,7 +75,7 @@ export const generateContent = async (
                   text: chunk.trim(),
                   waveform: null,
                   audio: "",
-                  voice: "",
+                  voice: "Alex",
                   audioBlob: null,
                 });
               }
@@ -96,7 +96,7 @@ export const generateContent = async (
       text: buffer.trim(),
       waveform: null,
       audio: "",
-      voice: "",
+      voice: "Alex",
       audioBlob: null,
     });
     onStream([...contentArray]);

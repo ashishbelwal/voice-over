@@ -12,16 +12,20 @@ const TimeRuler = ({
   setCurrentTime,
   durationArray,
   currentTime,
-  audioPlayerIndex,
+  audioPlayerArray,
   isPlaying,
   content,
+  totalTime,
+  handleAudioGeneration,
 }: {
   setCurrentTime: (time: number) => void;
   durationArray: number[];
   currentTime: number;
-  audioPlayerIndex: number;
+  audioPlayerArray: string[];
   isPlaying: boolean;
   content: TContent[];
+  totalTime: number;
+  handleAudioGeneration: (voice: string, id: string) => void;
 }) => {
   const rulerWrapperRef = useRef<HTMLDivElement>(null);
   const [scrollX, setScrollX] = useState(0);
@@ -42,6 +46,10 @@ const TimeRuler = ({
 
   const handleTimeUpdate = (e: React.MouseEvent) => {
     if (!rulerWrapperRef.current) return;
+    if (audioPlayerArray.length === 0) {
+      setCurrentTime(0);
+      return;
+    }
 
     const rect = rulerWrapperRef.current.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
@@ -69,7 +77,11 @@ const TimeRuler = ({
           transition: "transform 0.05s linear",
         }}
       >
-        <TimeMarker currentTime={currentTime} />
+        <TimeMarker
+          currentTime={currentTime}
+          totalTime={totalTime}
+          isPlaying={isPlaying}
+        />
         <Ruler
           type="horizontal"
           unit={5}
@@ -86,7 +98,11 @@ const TimeRuler = ({
           }}
           textFormat={(scale) => `${scale}s`}
         />
-        <WaveformPlayer content={content} durationArray={durationArray} />
+        <WaveformPlayer
+          content={content}
+          durationArray={durationArray}
+          handleAudioGeneration={handleAudioGeneration}
+        />
       </div>
     </div>
   );

@@ -17,7 +17,6 @@ const AppContent = () => {
   const [contentType, setContentType] = useState<TContentType>("content");
   const [content, setContent] = useState<TContent[]>([]);
   const [audioPlayerArray, setAudioPlayerArray] = useState<string[]>([]);
-
   const audioPlayer = useRef<HTMLAudioElement>(
     null
   ) as React.RefObject<HTMLAudioElement>;
@@ -26,9 +25,9 @@ const AppContent = () => {
   const [totalTime, setTotalTime] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [durationArray, setDurationArray] = useState<number[]>([]);
-  const [markerTime, setMarkerTime] = useState(0);
 
   useEffect(() => {
+    // console.log(content);
     const validAudioUrls = content
       .map((item) => item.audio)
       .filter((url): url is string => !!url);
@@ -64,6 +63,15 @@ const AppContent = () => {
   useEffect(() => {
     if (audioPlayerArray.length > 0) {
       getTotalTime();
+    } else {
+      setCurrentTime(0);
+    }
+    let audioSrc = audioPlayer.current.src.split("/");
+    if (
+      !audioSrc[audioSrc.length - 1] ||
+      audioSrc[audioSrc.length - 1] === "undefined"
+    ) {
+      handlePlayAtIndex(0, false);
     }
   }, [audioPlayerArray]);
 
@@ -100,30 +108,36 @@ const AppContent = () => {
     );
   };
 
-  const handlePlayAtIndex = (index: number) => {
+  const handlePlayAtIndex = (
+    index: number,
+    play: boolean = true,
+    time: number = 0
+  ) => {
     const player = audioPlayer.current;
     if (!player) return;
-
-    const handleCanPlay = () => {
-      player.play().catch((err) => {
-        console.warn("Playback error:", err);
-      });
-    };
-
     player.pause();
-    player.removeEventListener("canplaythrough", handleCanPlay);
-
     player.src = audioPlayerArray[index];
-    player.currentTime = 0;
+    player.currentTime = time;
     player.load();
-
-    player.addEventListener("canplaythrough", handleCanPlay);
     setAudioPlayerIndex(index);
-    setMarkerTime(durationArray[index]);
+    if (play) {
+      setIsPlaying(true);
+      player.play();
+      audioPlayer.current.play();
+    } else {
+      player.pause();
+      setIsPlaying(false);
+      player.pause();
+      audioPlayer.current.pause();
+    }
   };
+
   const handleNext = () => {
     if (audioPlayerIndex < audioPlayerArray.length - 1) {
-      handlePlayAtIndex(audioPlayerIndex + 1);
+      const sumOfPreviousDuration = durationArray
+        .slice(0, audioPlayerIndex + 1)
+        .reduce((acc, curr) => acc + curr, 0);
+      setCurrentTime(sumOfPreviousDuration + 0.01);
     } else {
       console.log("Playlist ended");
     }
@@ -131,26 +145,41 @@ const AppContent = () => {
 
   const handlePrevious = () => {
     if (audioPlayerIndex > 0) {
-      handlePlayAtIndex(audioPlayerIndex - 1);
+      const sumOfPreviousDuration = durationArray
+        .slice(0, audioPlayerIndex - 1)
+        .reduce((acc, curr) => acc + curr, 0);
+      setCurrentTime(sumOfPreviousDuration + 0.01);
     } else {
       console.log("At beginning of playlist");
     }
   };
   const handleEnded = () => {
-    console.log("audioPlayerIndex", audioPlayerIndex);
     if (audioPlayerIndex < audioPlayerArray.length - 1) {
-      setAudioPlayerIndex((prev) => prev + 1);
-      setCurrentTime(0);
+      handlePlayAtIndex(audioPlayerIndex + 1, isPlaying, 0);
     } else {
       console.log("Playlist ended");
     }
   };
 
+  useEffect(() => {
+    if (audioPlayerArray.length === 0) return;
+    let sumOFCurrentDuration = 0;
+    let index = 0;
+    for (let i = 0; i < durationArray.length; i++) {
+      sumOFCurrentDuration += durationArray[i];
+      index = i;
+      if (currentTime < sumOFCurrentDuration) {
+        break;
+      }
+    }
+    const sumOfPreviousDuration = sumOFCurrentDuration - durationArray[index];
+    handlePlayAtIndex(index, isPlaying, currentTime - sumOfPreviousDuration);
+  }, [currentTime]);
+
   return (
     <div className="full-height">
       <audio
         ref={audioPlayer}
-        // key={audioPlayerArray[audioPlayerIndex]}
         onEnded={handleEnded}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -198,6 +227,7 @@ const AppContent = () => {
                 audioPlayerIndex={audioPlayerIndex}
                 setCurrentTime={setCurrentTime}
                 handleAudioGeneration={handleAudioGeneration}
+                audioPlayerArray={audioPlayerArray}
               />
             </div>
           </div>

@@ -28,7 +28,14 @@ const Transcript = ({
       ))}
       <TranscriptContent
         key="new"
-        transcript={{ id: "", text: "", waveform: "", audio: "", voice: "" }}
+        transcript={{
+          id: "",
+          text: "",
+          waveform: "",
+          audio: "",
+          voice: "",
+          audioBlob: null,
+        }}
         content={content}
         setContentType={setContentType}
         setContent={setContent}
