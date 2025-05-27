@@ -4,6 +4,9 @@ A modern web application for creating and managing voice-over projects. Built wi
 
 For Backend please use this [repo](https://github.com/ashishbelwal/ai-bridge).
 
+## Demo
+Youtube URL: https://www.youtube.com/watch?v=77um1AC9NpM
+
 ## Features
 
 - 🎙️ Audio visualization and waveform editing
