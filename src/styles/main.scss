@@ -63,6 +63,18 @@ button.grey-button-icon{
     font-size: 12px !important;
 }
 
+textarea{
+    overflow-y: auto;
+    &::-webkit-scrollbar{
+        width: 3px;
+    
+    }
+    &::-webkit-scrollbar-thumb{
+        background-color: #00000010;
+        border-radius: 10px;
+    }
+}
+
 #root{
     width: 100%;
     min-height: 100vh;
