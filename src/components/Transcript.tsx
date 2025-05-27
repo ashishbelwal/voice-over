@@ -1,15 +1,13 @@
 import { Dispatch, SetStateAction } from "react";
-import { TContent, TContentType } from "../types/types";
+import { TContent } from "../types/types";
 import TranscriptContent from "./TranscriptContent";
 
 const Transcript = ({
   content,
-  setContentType,
   setContent,
   handleAudioGeneration,
 }: {
   content: TContent[];
-  setContentType: Dispatch<SetStateAction<TContentType>>;
   setContent: Dispatch<SetStateAction<TContent[]>>;
   handleAudioGeneration: (voice: string, id: string) => void;
 }) => {
@@ -20,7 +18,6 @@ const Transcript = ({
           <TranscriptContent
             content={content}
             transcript={item}
-            setContentType={setContentType}
             setContent={setContent}
             handleAudioGeneration={handleAudioGeneration}
           />
@@ -37,7 +34,6 @@ const Transcript = ({
           audioBlob: null,
         }}
         content={content}
-        setContentType={setContentType}
         setContent={setContent}
         handleAudioGeneration={handleAudioGeneration}
       />

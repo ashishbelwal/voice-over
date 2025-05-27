@@ -155,7 +155,8 @@ const AppContent = () => {
   };
   const handleEnded = () => {
     if (audioPlayerIndex < audioPlayerArray.length - 1) {
-      handlePlayAtIndex(audioPlayerIndex + 1, isPlaying, 0);
+      console.log("Playing next audio");
+      handlePlayAtIndex(audioPlayerIndex + 1, true, 0.01);
     } else {
       console.log("Playlist ended");
     }
@@ -208,7 +209,6 @@ const AppContent = () => {
               <div className="full-height transcript">
                 <Transcript
                   content={content}
-                  setContentType={setContentType}
                   setContent={setContent}
                   handleAudioGeneration={handleAudioGeneration}
                 />
@@ -224,7 +224,6 @@ const AppContent = () => {
                 totalTime={totalTime}
                 currentTime={currentTime}
                 durationArray={durationArray}
-                audioPlayerIndex={audioPlayerIndex}
                 setCurrentTime={setCurrentTime}
                 handleAudioGeneration={handleAudioGeneration}
                 audioPlayerArray={audioPlayerArray}

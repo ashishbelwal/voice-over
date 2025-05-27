@@ -15,11 +15,7 @@ const AudioVoice = () => {
           style={{ width: "100%" }}
         >
           <div className="flex flex-row justify-between items-center">
-            <Avatar
-              src="https://www.wondercraft.ai/_next/image?url=https%3A%2F%2Fwondercraft-app-thumbnails.s3.amazonaws.com%2Fvoice-images%2F15CVCzDByBinCIoCblXo.webp&w=750&q=75"
-              style={{ marginRight: 4 }}
-            />{" "}
-            Alex
+            <Avatar src="/alex.jpg" style={{ marginRight: 4 }} /> Alex
           </div>
           <div className="flex flex-row justify-between items-center">
             <Avatar

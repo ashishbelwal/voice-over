@@ -12,7 +12,6 @@ const AudioContent = ({
   totalTime,
   currentTime,
   durationArray,
-  audioPlayerIndex,
   setCurrentTime,
   handleAudioGeneration,
   audioPlayerArray,
@@ -25,7 +24,6 @@ const AudioContent = ({
   totalTime: number;
   currentTime: number;
   durationArray: number[];
-  audioPlayerIndex: number;
   setCurrentTime: (time: number) => void;
   handleAudioGeneration: (voice: string, id: string) => void;
   audioPlayerArray: string[];
